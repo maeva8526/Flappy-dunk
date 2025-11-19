@@ -1,9 +1,9 @@
 import pygame
 
-background_layers = [
+"""background_layers = [
     pygame.image.load("fond-_ecran.png").convert(),
     pygame.image.load().convert()
-]
+]"""
 
 class Game:
     def __init__(self):
@@ -23,7 +23,9 @@ class Game:
             for event in pygame.event.get(): #on parcours tous les événements envoyés par pygame
                 if event.type == pygame.QUIT: #si l'utilisateur ferme la fenêtre
                     self.running = False #arrête la boucle 
-            self.window.fill((0, 0, 0)) # couleur des images de la fenêtre
+            # Charger l'image de fond
+            background = pygame.image.load("fond-d_ecran.png").convert()
+            self.window.blit(background, (0, 0))
             pygame.display.flip() #met à jour l'affichage
             self.clock.tick(60) #limite la boucle à 60 img/sec
         pygame.quit() #ferme pygame quand la boucle est terminée
