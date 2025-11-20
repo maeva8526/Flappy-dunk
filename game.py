@@ -21,7 +21,7 @@ class Game:
         # Booléen qui indique si la boucle principale doit continuer
         self.state = "menu"
         # Etat du jeu : "menu" pour l'instant, plus tard "play"
-        self.ground_y = 670
+        self.ground_y = 750
         # Position verticale du sol
         self.font_title = pygame.font.SysFont(None, 80)
         # Police pour le titre dans le menu
@@ -36,9 +36,6 @@ class Game:
         # Crée un joueur au début du niveau, posé sur le sol
        
     def run(self):
-        # Méthode principale qui contient la boucle de jeu
-        self.player.update()
-        self.player.draw(self.window) 
         while self.running:
             # Tant que running est True, la boucle continue
             for event in pygame.event.get():
@@ -89,7 +86,7 @@ class Game:
     def draw_game(self):
         # Dessine la scène de jeu
         self.window.fill((0, 0, 20))
-        # On remplit l'écran de bleu (ciel)
+        # On remplit l'écran de bleu foncé
         self.player.draw(self.window)
         # On dessine le joueur
     def update_game(self):
