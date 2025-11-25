@@ -6,6 +6,8 @@ class Player:
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, (90, 90))
         self.rect = self.image.get_rect(center=(x, y))
+        self.x = x
+        self.y = y
 
         self.height = 60
 
@@ -33,14 +35,12 @@ class Player:
         # On ajoute la gravité à la vitesse verticale
         self.rect.y += self.vy
         # On met à jour la position verticale
+        # Limite sol
         if self.rect.bottom + self.height >= ground_y:
-            # Si le bas du joueur passe sous le sol
             self.rect.bottom = ground_y - self.height
-            # On replace le joueur juste sur le sol
             self.vy = 0
-            # On annule la vitesse verticale
-            self.on_ground = True
-            # On indique qu'il est au sol
-        else:
-            self.on_ground = False
-            # Sinon, il est en l'air
+
+        # Limite plafond
+        if self.rect.top <= 0:
+            self.rect.top = 0
+            self.vy = 0

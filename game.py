@@ -2,6 +2,8 @@ import pygame
 # On importe la bibliothèque pygame pour gérer la fenêtre et le jeu
 
 from ball import Player
+from enemy import Enemy
+from random import randint
 
 class Game:
     # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
@@ -15,6 +17,14 @@ class Game:
         # Création de la fenêtre Pygame avec la taille (largeur, hauteur)
         pygame.display.set_caption("Flappy dunk")
         # Définition du titre de la fenêtre
+        # FOND
+        self.fond = pygame.image.load("fond étoiles.png").convert_alpha()
+        self.fond = pygame.transform.scale(self.fond, (430, 670))
+        # Positions initiales des deux fonds
+        self.fond_x1 = 0
+        self.fond_x2 = self.width
+        self.fond_speed = 2
+
         self.clock = pygame.time.Clock()
         # Objet Clock pour limiter le nombre d'images par seconde
         self.running = True
@@ -29,11 +39,22 @@ class Game:
         # Police pour les textes dans le menu
         self.reset_level()
         # On initialise le niveau (joueur, etc.)
+        self.enemies = []
+    def update_background(self):
+        self.fond_x1 -= self.fond_speed
+        self.fond_x2 -= self.fond_speed
+
+        # boucle infinie
+        if self.fond_x1 <= -self.width:
+            self.fond_x1 = self.fond_x2 + self.width
+        if self.fond_x2 <= -self.width:
+            self.fond_x2 = self.fond_x1 + self.width
 
     def reset_level(self):
         # Réinitialise la position du joueur (plus tard ennemi, goal...)
         self.player = Player(100, 300, "soucoupe.png")
         # Crée un joueur au début du niveau, posé sur le sol
+        self.enemies = []
        
     def run(self):
         while self.running:
@@ -87,8 +108,144 @@ class Game:
         # Dessine la scène de jeu
         self.window.fill((0, 0, 20))
         # On remplit l'écran de bleu foncé
+        # Dessiner les deux fonds qui défilent
+        self.window.blit(self.fond, (self.fond_x1, 0))
+        self.window.blit(self.fond, (self.fond_x2, 0))
         self.player.draw(self.window)
         # On dessine le joueur
+        for enemy in self.enemies:
+            enemy.draw(self.window)
+    def update_game(self):
+        self.update_background()  # ← AJOUT OBLIGATOIRE
+        # Met à jour la logique du jeu
+        keys = pygame.key.get_pressed()
+        # On relit le clavier pour le saut
+        if keys[pygame.K_SPACE]:
+            # Si la barre d'espace est enfoncée
+            self.player.jump()
+            # On demande au joueur de sauter
+        self.player.apply_gravity(self.ground_y)
+        # On applique la gravité et on gère le sol
+        # Apparition d'une météorite (1 chance sur 120 = environ 0.5 seconde)
+        if randint(1, 120) == 1:
+            enemy = Enemy(self.width + 50, randint(50, self.height - 100), "météorite.png")
+            self.enemies.append(enemy)
+
+        # Mise à jour des météorites
+        for enemy in self.enemies[:]:
+            enemy.move()
+
+            # Si elle sort de l'écran à gauche → suppression
+            if enemy.rect.right < 0:
+                self.enemies.remove(enemy)
+            
+'''class Game:
+    def __init__(self):
+        self.width = 430
+        self.height = 670
+
+
+        self.window = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("Flappy dunk")
+
+
+        # CHARGEMENT DU FOND (corrigé)
+        self.fond = pygame.image.load("etoiles.png").convert_alpha()
+
+
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.state = "menu"
+
+
+        self.ground_y = 750
+       
+        self.font_title = pygame.font.SysFont(None, 80)
+        self.font_text = pygame.font.SysFont(None, 40)
+
+
+        self.reset_level()
+
+
+    def reset_level(self):
+        # Réinitialise la position du joueur (plus tard ennemi, goal...)
+        self.player = Player(100, 300, "soucoupe.png")
+        # Crée un joueur au début du niveau, posé sur le sol
+       
+    def run(self):
+        while self.running:
+            # Tant que running est True, la boucle continue
+            for event in pygame.event.get():
+            # On parcourt tous les événements envoyés par Pygame
+                if event.type == pygame.QUIT:
+                    # Si l'utilisateur ferme la fenêtre
+                    self.running = False
+                    # On arrête la boucle en mettant running à False
+                if self.state == "menu":
+                    # Si on est dans le menu
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                        # Si on appuie sur ENTREE
+                        self.reset_level()
+                        # On réinitialise le niveau
+                        self.state = "play"
+                        # On passe en mode jeu
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.player.jump()
+            if self.state == "menu":
+                # Si on est dans l'écran de menu
+                self.draw_menu()
+                # On dessine le menu
+            elif self.state == "play":
+                # Si on est dans l'état de jeu
+                self.update_game()
+                # On met à jour la logique du jeu
+                self.draw_game()
+                # On dessine le jeu
+            pygame.display.flip()
+            # On met à jour l'affichage (affiche ce qui a été dessiné)
+            self.clock.tick(60)
+            # On limite la boucle à 60 images par seconde
+        pygame.quit()
+        # Quand la boucle est terminée, on ferme Pygame proprement
+
+
+    def draw_menu(self):
+    # Fond noir d'abord
+        self.window.fill((0, 0, 0))
+    # Puis l'image étoile par-dessus
+        self.window.blit(self.fond, (0, 0))
+
+
+        title = self.font_title.render("Flappy Dunk", True, (255, 255, 255))
+        text = self.font_text.render("Appuyez sur ENTREE", True, (255, 255, 255))
+        self.window.blit(title, (50, 100))
+        self.window.blit(text, (60, 400))
+   
+
+
+
+
+    # Texte du menu
+       
+
+
+
+
+    def draw_game(self):
+    # 1) Effacer l’écran
+        self.window.fill((0, 0, 0))
+
+
+    # 2) Afficher ton image étoile
+        self.window.blit(self.fond, (20, 200))
+
+
+    # 3) Dessiner ton sprite
+        self.player.draw(self.window)
+
+
+
+
     def update_game(self):
         # Met à jour la logique du jeu
         keys = pygame.key.get_pressed()
@@ -99,6 +256,5 @@ class Game:
             # On demande au joueur de sauter
         self.player.apply_gravity(self.ground_y)
         # On applique la gravité et on gère le sol
-     
 
-
+'''
