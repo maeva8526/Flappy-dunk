@@ -15,10 +15,10 @@ class Game:
         # Hauteur de la fenêtre en pixels
         self.window = pygame.display.set_mode((self.width, self.height))
         # Création de la fenêtre Pygame avec la taille (largeur, hauteur)
-        pygame.display.set_caption("Flappy dunk")
+        pygame.display.set_caption("Flappy Space")
         # Définition du titre de la fenêtre
         # FOND
-        self.fond = pygame.image.load("1.png").convert_alpha()
+        self.fond = pygame.image.load("fond_etoile.png").convert_alpha()
         self.fond = pygame.transform.scale(self.fond, (430, 670))
         # Positions initiales des deux fonds
         self.fond_x1 = 0
@@ -31,7 +31,7 @@ class Game:
         # Booléen qui indique si la boucle principale doit continuer
         self.state = "menu"
         # Etat du jeu : "menu" pour l'instant, plus tard "play"
-        self.ground_y = 760
+        self.ground_y = 670
         # Position verticale du sol (Taille de l'écran + taille de la soucoupe)
         self.font_title = pygame.font.SysFont(None, 80)
         # Police pour le titre dans le menu
@@ -96,15 +96,18 @@ class Game:
         # Dessine l'écran de menu
         self.window.fill((0, 0, 0))
         # Remplit l'écran de noir
-        title = self.font_title.render("Flappy Dunk", True, (255, 255, 255))
+        title = self.font_title.render("Flappy Space", True, (255, 255, 255))
         # Crée le texte du titre en blanc
         text = self.font_text.render("Appuyez sur ENTREE", True, (255, 255, 255))
         # Crée le texte d'instruction
-        self.window.blit(title,( 50, 100))
+        self.window.blit(title,(40, 100))
         # Dessine le titre
         self.window.blit(text, (60, 400)) #(x,y) du coin supérieur gauche du texte 
         # Dessine le texte d'instruction
     def draw_game(self):
+        self.player.draw_hitbox(self.window)
+        for enemy in self.enemies:
+            enemy.draw_hitbox(self.window)
         # Dessine la scène de jeu
         self.window.fill((0, 0, 20))
         # On remplit l'écran de bleu foncé
@@ -114,6 +117,7 @@ class Game:
         self.player.draw(self.window)
         # On dessine le joueur
         for enemy in self.enemies:
+            enemy.draw_hitbox(self.window)
             enemy.draw(self.window)
     def update_game(self):
         self.update_background()  # ← AJOUT OBLIGATOIRE
@@ -126,6 +130,10 @@ class Game:
             # On demande au joueur de sauter
         self.player.apply_gravity(self.ground_y)
         # On applique la gravité et on gère le sol
+        self.player.update_explosion()   # <<< IMPORTANT : explosion se met à jour ICI
+        '''if self.player.exploding:
+            pygame.time.delay(3000)
+            self.state = 'menu'''
         # Apparition d'une météorite (1 chance sur 120 = environ 0.5 seconde)
         if randint(1, 120) == 1:
             enemy = Enemy(self.width + 50, randint(0, 670), "meteorite.png")
@@ -134,7 +142,9 @@ class Game:
         # Mise à jour des météorites
         for enemy in self.enemies[:]:
             enemy.move()
-
             # Si elle sort de l'écran à gauche → suppression
             if enemy.rect.right < 0:
                 self.enemies.remove(enemy)
+            if self.player.hitbox.colliderect(enemy.hitbox):
+                pygame.time.delay(3000)
+                self.state = 'menu'
