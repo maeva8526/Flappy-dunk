@@ -40,6 +40,8 @@ class Game:
         self.reset_level()
         # On initialise le niveau (joueur, etc.)
         self.enemies = []
+        self.explosion_time = None
+
     def update_background(self):
         self.fond_x1 -= self.fond_speed
         self.fond_x2 -= self.fond_speed
@@ -55,6 +57,7 @@ class Game:
         self.player = Player(100, 300, "soucoupe.png")
         # Crée un joueur au début du niveau, posé sur le sol
         self.enemies = []
+        self.explosion_time = None
        
     def run(self):
         while self.running:
@@ -65,7 +68,7 @@ class Game:
                     # Si l'utilisateur ferme la fenêtre
                     self.running = False
                     # On arrête la boucle en mettant running à False
-                if self.state == "menu":
+                if self.state == "menu" or self.state == "end":
                     # Si on est dans le menu
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                         # Si on appuie sur ENTREE
@@ -85,6 +88,9 @@ class Game:
                 # On met à jour la logique du jeu
                 self.draw_game()
                 # On dessine le jeu
+            elif self.state == 'end':
+                self.draw_end()
+                self.reset_level()
             pygame.display.flip()
             # On met à jour l'affichage (affiche ce qui a été dessiné)
             self.clock.tick(60)
@@ -106,11 +112,9 @@ class Game:
         # Dessine le texte d'instruction
     def draw_game(self):
         self.player.draw_hitbox(self.window)
-        for enemy in self.enemies:
-            enemy.draw_hitbox(self.window)
         # Dessine la scène de jeu
         self.window.fill((0, 0, 20))
-        # On remplit l'écran de bleu foncé
+        # On remplit l'écran de bleu foncé      
         # Dessiner les deux fonds qui défilent
         self.window.blit(self.fond, (self.fond_x1, 0))
         self.window.blit(self.fond, (self.fond_x2, 0))
@@ -119,6 +123,18 @@ class Game:
         for enemy in self.enemies:
             enemy.draw_hitbox(self.window)
             enemy.draw(self.window)
+    def draw_end(self):
+        # Dessine l'écran de fin
+        self.window.fill((0, 0, 0))
+        # Remplit l'écran de noir
+        title = self.font_title.render("Game Over", True, (255, 255, 255))
+        # Crée le texte du titre en blanc
+        text = self.font_text.render("Appuyez sur ENTREE", True, (255, 255, 255))
+        # Crée le texte d'instruction
+        self.window.blit(title,(60, 100))
+        # Dessine le titre
+        self.window.blit(text, (60, 400)) #(x,y) du coin supérieur gauche du texte 
+        # Dessine le texte d'instruction
     def update_game(self):
         self.update_background()  # ← AJOUT OBLIGATOIRE
         # Met à jour la logique du jeu
@@ -131,13 +147,19 @@ class Game:
         self.player.apply_gravity(self.ground_y)
         # On applique la gravité et on gère le sol
         self.player.update_explosion()   # <<< IMPORTANT : explosion se met à jour ICI
-        '''if self.player.exploding:
-            pygame.time.delay(3000)
-            self.state = 'menu'''
+        # Lancer le timer de fin si explosion démarre
+        if self.player.exploding and self.explosion_time is None:
+            self.explosion_time = pygame.time.get_ticks()
+
         # Apparition d'une météorite (1 chance sur 120 = environ 0.5 seconde)
         if randint(1, 120) == 1:
             enemy = Enemy(self.width + 50, randint(0, 670), "meteorite.png")
             self.enemies.append(enemy)
+        # Si explosion en cours → attendre 1 seconde avant fin
+        if self.explosion_time is not None:
+            if pygame.time.get_ticks() - self.explosion_time >= 500:
+                self.state = "end"
+                return
 
         # Mise à jour des météorites
         for enemy in self.enemies[:]:
@@ -146,5 +168,6 @@ class Game:
             if enemy.rect.right < 0:
                 self.enemies.remove(enemy)
             if self.player.hitbox.colliderect(enemy.hitbox):
-                pygame.time.delay(3000)
-                self.state = 'menu'
+                self.player.exploding = True
+                if self.explosion_time is None:
+                    self.explosion_time = pygame.time.get_ticks()

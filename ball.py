@@ -6,8 +6,7 @@ class Player:
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, (90, 90))
         self.rect = self.image.get_rect(center=(x, y))
-        self.rect = self.rect.inflate(0 , -30)
-        self.height = 60
+        self.rect = self.rect.inflate(0 , -35) #modifier la hauteur du rectangle 
         self.can_jump = True
         self.hitbox = None
         # Physique
@@ -63,7 +62,6 @@ class Player:
         # Gravité
         self.vy += self.gravity
         self.rect.y += self.vy
-        
 
         # ---- SOL ----
         if self.rect.bottom >= ground_y:
@@ -74,17 +72,15 @@ class Player:
             self.explosion_index = 0
             return
 
-
         # ---- PLAFOND ----
-        elif self.rect.top <= 0:
-            self.rect.top = 0
+        elif self.rect.top <= -20: #-20 car avec 0 ça marche pas
+            self.rect.top = -20
             self.vy = 0
             self.can_jump = False  # pas de saut au plafond
             self.exploding = True
             self.explosion_index = 0
             return
-
-
+        
         else:
             # Dans les airs → peut sauter uniquement si vitesse < 0 (pendant un vrai saut)
             self.can_jump = True
