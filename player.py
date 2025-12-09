@@ -3,8 +3,11 @@ import pygame
 class Player:
     def __init__(self, x, y, image_path):
         # Charger l'image de la soucoupe
-        self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (90, 90))
+        self.original_image = pygame.image.load(image_path).convert_alpha()
+        self.original_image = pygame.transform.scale(self.original_image, (90, 90))
+        # Image courante (modifiable lors de l'explosion)
+        self.image = self.original_image.copy()
+
         self.rect = self.image.get_rect(center=(x, y))
         self.rect = self.rect.inflate(0 , -35) #modifier la hauteur du rectangle 
         self.can_jump = True
@@ -24,6 +27,11 @@ class Player:
         self.explosion_index = 0
         self.exploding = False
         self.explosion_speed = 0.6
+
+        # --- Animation flottante pour le menu ---
+        self.float_angle = 0
+        self.float_speed = 0.05
+        self.float_amplitude = 8
 
     # ANIMATION EXPLOSION
     def update_explosion(self):

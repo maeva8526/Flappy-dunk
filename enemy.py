@@ -10,13 +10,18 @@ class Enemy:# Classe qui représente un ennemi simple
         self.rect = self.image.get_rect(center=(x, y))
         self.hitbox = pygame.Rect(0,0,0,0)
         self.height = 60
+        self.speed = 1.5
 
     def draw_hitbox(self, window):
-        """Dessine la hitbox de la météorite (pour debug)."""
+        """Dessine la hitbox de la météorite"""
         self.hitbox = pygame.draw.rect(window, 0, (self.rect.x + 10, self.rect.y + 10, 70, 70), 2)
 
-    def move(self):
-        self.rect.x -= 3
+    def move(self, difficulty = 0):
+        """Déplace la météorite vers la gauche en fonction de la difficulté."""
+        self.rect.x -= self.speed + difficulty * 0.1
+
+        # Mettre à jour la hitbox si nécessaire
+        self.hitbox.topleft = self.rect.topleft
 
     def draw(self, window):
         """Dessin de la météorite dans la fenêtre."""
