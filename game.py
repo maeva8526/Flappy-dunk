@@ -60,8 +60,23 @@ class Game:
         self.frame_count = 0
         self.font_score = pygame.font.SysFont(None, 50)
 
+         # BEST SCORE
+        self.best_score = 0
+        self.load_best_score()   # On charge si un fichier existe
+        self.best_font = pygame.font.Font("arcade.ttf", 30)
+
         self.reset_level()
         # On initialise le niveau (joueur, etc.)
+
+        self.score_img = pygame.image.load("score.png").convert_alpha()
+        self.score_img = pygame.transform.scale(self.score_img, (110, 45))
+        self.best_img = pygame.image.load("high_score.png").convert_alpha()
+        self.best_img = pygame.transform.scale(self.best_img, (160, 80))
+        self.pixel_font = pygame.font.Font("arcade.ttf", 25)
+        self.game_over_img = pygame.image.load("game_over.png").convert_alpha()
+        self.game_over_img = pygame.transform.scale(self.game_over_img, (450, 150))  # adapte la taille si besoin
+        self.show_game_over = False  # indique si on doit afficher Game Over
+
         
     def update_background(self):
         self.fond_x1 -= self.fond_speed
@@ -132,9 +147,33 @@ class Game:
     def draw_menu(self):
         # Dessine l'écran de menu
         self.window.blit(self.fond, (0,0))
-        # Affichage du titre 
-        title_x = self.width // 2 - self.title_img.get_width() // 2
-        title_y = 80
+
+        title_y = 40
+        #--- TITRE OU GAME OVER ---
+        if self.show_game_over:
+        # Affiche "GAME OVER" en rouge
+            game_over_font = pygame.font.Font("arcade.ttf", 60)
+            game_over_text = game_over_font.render("GAME OVER", True, (255, 0, 0))
+            self.window.blit(game_over_text, (self.width // 2 - game_over_text.get_width() // 2, title_y))
+        else:
+        # Affiche le titre normal
+            title_x = self.width // 2 - self.title_img.get_width() // 2
+            self.window.blit(self.title_img, (title_x, title_y))
+
+
+    # --- IMAGE HIGH SCORE ---
+        decalage_gauche = 50  # ajuste la position horizontale
+        best_x = (self.width // 2 - self.best_img.get_width() // 2) - decalage_gauche
+        best_y = 200
+        self.window.blit(self.best_img, (best_x, best_y))
+
+
+    # --- TEXTE VALEUR DU BEST SCORE ---
+        best_value = self.best_font.render(str(self.best_score), True, (255, 255, 255))
+        value_x = best_x + self.best_img.get_width() + 10
+        value_y = best_y + self.best_img.get_height() // 2 - best_value.get_height() // 2
+        self.window.blit(best_value, (value_x, value_y))
+        
         self.window.blit(self.title_img, (title_x, title_y))
 
         # Utilise des valeurs par défaut si Player n'a pas encore float_angle, float_speed, float_amplitude
@@ -158,6 +197,7 @@ class Game:
         x = self.width // 2 - start_img.get_width() // 2
         y = 500
         self.window.blit(start_img, (x, y))
+    #
 
     def draw_game(self):
         self.player.draw_hitbox(self.window)
@@ -172,8 +212,17 @@ class Game:
         for enemy in self.enemies:
             enemy.draw_hitbox(self.window)
             enemy.draw(self.window)
-        score_text = self.font_score.render(f"Score : {self.score}", True, (255, 255, 255))
-        self.window.blit(score_text, (10, 10))
+        # Affichage image score
+        score_x = 10
+        score_y = 10
+        self.window.blit(self.score_img, (score_x, score_y))
+        # --- TEXTE DU SCORE ---
+        score_text = self.pixel_font.render(str(self.score), True, (255, 255, 255))
+        # Position du nombre juste à droite de l'image
+        number_x = score_x + self.score_img.get_width() + 10
+        score_value_y = 20  # nouvelle position verticale pour le score
+        self.window.blit(score_text, (number_x, score_value_y))
+
     
     def update_transition(self):    #pour faire bouger la soucoupe à la position de départ
         speed = 5
@@ -240,6 +289,10 @@ class Game:
         # Si explosion en cours → attendre 1 seconde avant fin
         if self.explosion_time is not None:
             if pygame.time.get_ticks() - self.explosion_time >= 500:
+                if self.score > self.best_score:
+                    self.best_score = self.score
+                    self.save_best_score()
+
                 self.state = "menu"
                 self.reset_level()
                 self.prepare_menu_player()
@@ -259,3 +312,14 @@ class Game:
         self.frame_count += 1
         if self.frame_count % 60 == 0:
             self.score += 1
+    def load_best_score(self):
+        try:
+            with open("best_score.txt", "r") as f:
+                self.best_score = int(f.read())
+        except:
+            self.best_score = 0
+
+
+    def save_best_score(self):
+        with open("best_score.txt", "w") as f:
+            f.write(str(self.best_score))
