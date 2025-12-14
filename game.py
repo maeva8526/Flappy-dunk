@@ -1,26 +1,24 @@
-import pygame
-# On importe la bibliothèque pygame pour gérer la fenêtre et le jeu
+import pygame   # On importe la bibliothèque pygame pour gérer la fenêtre et le jeu
+
 import math
 import json
 from player import Player
 from enemy import Enemy
 from random import randint
 
-class Game:
-    # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
-    def __init__(self):
-        # Méthode constructeur, appelée quand on crée un objet Game
-        with open("score.json", "r", encoding="utf-8") as f:
+class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
+    def __init__(self): # Méthode constructeur, appelée quand on crée un objet Game
+        with open("score.json", "r", encoding="utf-8") as f: # Ouvre le fichier score.json pour le meilleur score
             self.donnees = json.load(f)
-        self.width = 430
-        # Largeur de la fenêtre en pixels
-        self.height = 670
-        # Hauteur de la fenêtre en pixels
-        self.window = pygame.display.set_mode((self.width, self.height))
+        self.width = 430    # Largeur de la fenêtre en pixels
+        self.height = 670   # Hauteur de la fenêtre en pixels
+        
         # Création de la fenêtre Pygame avec la taille (largeur, hauteur)
-        pygame.display.set_caption("Flappy Space")
-        # Définition du titre de la fenêtre
-        # FOND
+        self.window = pygame.display.set_mode((self.width, self.height))
+        
+        pygame.display.set_caption("Flappy Space")  # Titre de la fenêtre
+
+        # image de fond
         self.fond = pygame.image.load("images/fond_etoile.png").convert_alpha()
         self.fond = pygame.transform.scale(self.fond, (430, 670))
         # Positions initiales des deux fonds
@@ -28,18 +26,19 @@ class Game:
         self.fond_x2 = self.width
         self.fond_speed = 2
 
-        self.clock = pygame.time.Clock()
-        # Objet Clock pour limiter le nombre d'images par seconde
-        self.running = True
-        # Booléen qui indique si la boucle principale doit continuer
-        self.state = "menu"
-        # Etat du jeu : "menu" pour l'instant, plus tard "play"
+        self.clock = pygame.time.Clock() # Objet Clock pour limiter le nombre d'images par seconde
+
+        self.running = True # Booléen qui indique si la boucle principale doit continuer
+        
+        self.state = "menu"  # Etat du jeu : "menu" pour l'instant, plus tard "play"
+       
         self.ground_y = 670
         # Position verticale du sol (Taille de l'écran + taille de la soucoupe)
-        self.title_img = pygame.image.load("images/title.png").convert_alpha() #titre
+
+        self.title_img = pygame.image.load("images/title.png").convert_alpha() # Titre du jeux
         self.title_img = pygame.transform.scale(self.title_img, (450, 150))
 
-        #  press_start chargé 
+        # image press start
         self.start_img = pygame.image.load("images/start.gif").convert_alpha()
         self.start_img = pygame.transform.scale(self.start_img, (250, 90))
 
@@ -51,8 +50,9 @@ class Game:
         self.player = None
         self.enemies = []
 
-        self.start_x = 100
+        self.start_x = 100  # Position du joueur au départ
         self.start_y = 300
+        self.menu_player = Player(self.start_x, self.start_y, "images/soucoupe.png")
 
         # Difficulté du spawn des meteorites
         self.spawn_difficulty = 1.0      # commence doucement
@@ -70,15 +70,16 @@ class Game:
         self.reset_level()
         # On initialise le niveau (joueur, etc.)
 
-        self.score_img = pygame.image.load("images/score.png").convert_alpha()
+        self.score_img = pygame.image.load("images/score.png").convert_alpha() #image du score
         self.score_img = pygame.transform.scale(self.score_img, (110, 45))
-        self.best_img = pygame.image.load("images/high_score.png").convert_alpha()
-        self.best_img = pygame.transform.scale(self.best_img, (160, 100))
-        self.pixel_font = pygame.font.Font("arcade.ttf", 25)
-        self.game_over_img = pygame.image.load("images/game_over.png").convert_alpha()
-        self.game_over_img = pygame.transform.scale(self.game_over_img, (450, 150))  # adapte la taille si besoin
-        self.show_game_over = False  # indique si on doit afficher Game Over
 
+        self.best_img = pygame.image.load("images/high_score.png").convert_alpha() #image du meilleur score
+        self.best_img = pygame.transform.scale(self.best_img, (160, 100))
+        self.pixel_font = pygame.font.Font("arcade.ttf", 25) #police du nombre score
+
+        self.game_over = False
+        self.game_over_img = pygame.image.load("images/game_over.png").convert_alpha() #image su game over
+        self.game_over_img = pygame.transform.scale(self.game_over_img, (450, 150))
         
     def update_background(self):
         self.fond_x1 -= self.fond_speed
@@ -149,7 +150,8 @@ class Game:
                 self.draw_game()
                 # On dessine le jeu
             elif self.state == 'end':
-                self.draw_end()
+                self.game_over = True
+                self.draw_menu()
             pygame.display.flip()
             # On met à jour l'affichage (affiche ce qui a été dessiné)
             self.clock.tick(60)
@@ -160,37 +162,42 @@ class Game:
     def draw_menu(self):
         # Dessine l'écran de menu
         self.window.blit(self.fond, (0,0))
+        if self.game_over:
+            # Titre game over
+            game_over_x = self.width // 2 - self.game_over_img.get_width() // 2
+            self.window.blit(self.game_over_img, (game_over_x, 40))
+        else:
+            #TITRE 
+            title_x = self.width // 2 - self.title_img.get_width() // 2
+            self.window.blit(self.title_img, (title_x, 40))
 
-        title_y = 40
-        #TITRE 
-        title_x = self.width // 2 - self.title_img.get_width() // 2
-        self.window.blit(self.title_img, (title_x, title_y))
+        self.window.blit(self.score_img, (120, 400)) # image du score affichée
+        score_text = self.pixel_font.render(str(self.score), True, (255, 255, 255))
+        # Position du nombre juste à droite de l'image
+        number_x = 120 + self.score_img.get_width() + 10
+        score_value_y = 410  # nouvelle position verticale pour le score
+        self.window.blit(score_text, (number_x, score_value_y))
 
-
-    # --- IMAGE HIGH SCORE ---
+        # Image du meilleur score
         decalage_gauche = 50  # ajuste la position horizontale
         best_x = (self.width // 2 - self.best_img.get_width() // 2) - decalage_gauche
         best_y = 200
         self.window.blit(self.best_img, (best_x, best_y))
-
-
-    # --- TEXTE VALEUR DU BEST SCORE ---
+        # Valeur du meilleur score
         best_value = self.best_font.render(str(self.best_score), True, (255, 255, 255))
         value_x = best_x + self.best_img.get_width() + 10
         value_y = best_y + self.best_img.get_height() // 2 - best_value.get_height() // 2
         self.window.blit(best_value, (value_x, value_y))
-        
-        self.window.blit(self.title_img, (title_x, title_y))
 
         # Utilise des valeurs par défaut si Player n'a pas encore float_angle, float_speed, float_amplitude
-        angle = getattr(self.player, "float_angle", 0.0)
-        speed = getattr(self.player, "float_speed", 0.05)
-        amp = getattr(self.player, "float_amplitude", 8)
+        angle = getattr(self.menu_player, "float_angle", 0.0)
+        speed = getattr(self.menu_player, "float_speed", 0.05)
+        amp = getattr(self.menu_player, "float_amplitude", 8)
         angle += speed
-        setattr(self.player, "float_angle", angle)  # stocke pour la frame suivante
+        setattr(self.menu_player, "float_angle", angle)  # stocke pour la frame suivante
         offset = int(math.sin(angle) * amp)
-        self.player.rect.center = (self.width // 2, self.height // 2 + offset)
-        self.player.draw(self.window)
+        self.menu_player.rect.center = (self.width // 2, self.height // 2 + offset)
+        self.menu_player.draw(self.window)
         # --- PRESS START CLIGNOTANT (TAILLE ORIGINALE RESTAURÉE) ---
         self.start_alpha += self.alpha_direction
         if self.start_alpha <= 0 or self.start_alpha >= 255:
@@ -203,35 +210,6 @@ class Game:
         x = self.width // 2 - start_img.get_width() // 2
         y = 500
         self.window.blit(start_img, (x, y))
-
-    def draw_end(self):
-        """Écran Game Over"""
-        self.window.blit(self.fond, (0, 0))
-    
-        # --- GAME OVER title ---
-        game_over_x = self.width // 2 - self.game_over_img.get_width() // 2
-        self.window.blit(self.game_over_img, (game_over_x, 80))
-    
-        self.window.blit(self.score_img, (100, 30))
-        # --- TEXTE DU SCORE ---
-        score_text = self.pixel_font.render(str(self.score), True, (255, 255, 255))
-        # Position du nombre juste à droite de l'image
-        number_x = 100 + self.score_img.get_width() + 10
-        score_value_y = 40  # nouvelle position verticale pour le score
-        self.window.blit(score_text, (number_x, score_value_y))
-        # --- IMAGE HIGH SCORE ---
-        decalage_gauche = 50  # ajuste la position horizontale
-        best_x = (self.width // 2 - self.best_img.get_width() // 2) - decalage_gauche
-        best_y = 200
-        self.window.blit(self.best_img, (best_x, best_y))
-
-
-    # --- TEXTE VALEUR DU BEST SCORE ---
-        best_value = self.best_font.render(str(self.best_score), True, (255, 255, 255))
-        value_x = best_x + self.best_img.get_width() + 10
-        value_y = best_y + self.best_img.get_height() // 2 - best_value.get_height() // 2
-        self.window.blit(best_value, (value_x, value_y))
-
 
     def draw_game(self):
         self.player.draw_hitbox(self.window)
@@ -283,7 +261,7 @@ class Game:
             # Si la barre d'espace est enfoncée
             self.player.jump()
             # On demande au joueur de sauter
-        self.player.apply_gravity(self.ground_y)
+        self.player.apply_gravity(self.height)
         # On applique la gravité et on gère le sol
         self.player.update_explosion()   # <<< IMPORTANT : explosion se met à jour ICI
         # Lancer le timer de fin si explosion démarre
@@ -315,19 +293,11 @@ class Game:
             enemy = Enemy(self.width + 50, y_enemy, "images/meteorite.png")
             self.enemies.append(enemy)
 
-        # Mise à jour des ennemis et collisions
-        for enemy in self.enemies[:]:
-            enemy.move(self.spawn_difficulty)
-            if enemy.rect.right < 0:
-                self.enemies.remove(enemy)
         # Si explosion en cours → attendre 1 seconde avant fin
         if self.explosion_time is not None:
             if pygame.time.get_ticks() - self.explosion_time >= 500:
                 self.meilleur_score()
                 self.state = "end"
-                self.reset_level()
-                self.prepare_menu_player()
-                self.enemies.clear()
                 return
 
         # Mise à jour des météorites
