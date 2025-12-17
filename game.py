@@ -6,6 +6,8 @@ from player import Player
 from enemy import Enemy
 from random import randint
 
+pygame.mixer.pre_init(44100, -16, 2, 512)
+
 class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
     def __init__(self): # Méthode constructeur, appelée quand on crée un objet Game
         with open("score.json", "r", encoding="utf-8") as f: # Ouvre le fichier score.json pour le meilleur score
@@ -80,6 +82,15 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
         self.game_over = False
         self.game_over_img = pygame.image.load("images/game_over.png").convert_alpha() #image su game over
         self.game_over_img = pygame.transform.scale(self.game_over_img, (450, 150))
+
+        # Son game over
+        self.sound_game_over = pygame.mixer.Sound("Sons/explosion.mp3")
+        self.sound_game_over.set_volume(0.7)
+        self.game_over_sound_played = False
+        # Musique de fond 
+        pygame.mixer.music.load("Sons/musique_de_fond.mp3")
+        pygame.mixer.music.set_volume(0.4)
+        self.menu_music_playing = False  # sera lancé automatiquement
         
     def update_background(self):
         self.fond_x1 -= self.fond_speed
@@ -101,6 +112,7 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
         self.frame_count = 0
         self.spawn_difficulty = 1.0
         self.spawn_timer = 0
+        self.game_over_sound_played = False
 
     def prepare_menu_player(self):
         self.player.rect.center = (self.width // 2, self.height // 2)
@@ -110,6 +122,11 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
         self.player.image = self.player.original_image.copy()
        
     def run(self):
+        # Lancer la musique de fond une seule fois au démarrage
+        if not self.menu_music_playing:
+            pygame.mixer.music.play(-1)  # -1 = boucle infinie
+            self.menu_music_playing = True
+
         while self.running:
             # Tant que running est True, la boucle continue
             for event in pygame.event.get():
@@ -234,8 +251,7 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
         number_x = score_x + self.score_img.get_width() + 10
         score_value_y = 20  # nouvelle position verticale pour le score
         self.window.blit(score_text, (number_x, score_value_y))
-
-    
+  
     def update_transition(self):    #pour faire bouger la soucoupe à la position de départ
         speed = 5
         dx = self.start_x - self.player.rect.x
@@ -250,7 +266,6 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
             self.player.rect.x = self.start_x
             self.player.rect.y = self.start_y
             self.state = "play"
-
 
     def update_game(self):
         self.update_background()  # ← AJOUT OBLIGATOIRE
@@ -267,6 +282,9 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
         # Lancer le timer de fin si explosion démarre
         if self.player.exploding and self.explosion_time is None:
             self.explosion_time = pygame.time.get_ticks()
+            if not self.game_over_sound_played:
+                self.sound_game_over.play()
+                self.game_over_sound_played = True
 
         # Apparition aléatoire d'ennemis
         # Augmentation progressive de la difficulté (≈ toutes les 1 seconde)
@@ -310,6 +328,10 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
                 self.player.exploding = True
                 if self.explosion_time is None:
                     self.explosion_time = pygame.time.get_ticks()
+                if not self.game_over_sound_played:
+                    self.sound_game_over.play()
+                    self.game_over_sound_played = True
+
         self.frame_count += 1
         if self.frame_count % 60 == 0:
             self.score += 1
