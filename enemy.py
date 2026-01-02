@@ -1,17 +1,16 @@
-import pygame# On importe pygame pour utiliser Rect et les fonctions de dessin
+import pygame # On importe pygame pour utiliser Rect et les fonctions de dessin
 
 
-class Enemy:# Classe qui représente un ennemi simple
+class Enemy: # Classe qui représente un ennemi simple
    
     def __init__(self, x, y, image_path):
-        # Charger l'image de la météorite
-        self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (90, 90))
+        self.image = pygame.image.load(image_path).convert_alpha() # Charger l'image de la météorite
+        self.image = pygame.transform.scale(self.image, (90, 90)) # Redimensionne la météorite
 
-        self.rect = self.image.get_rect(center=(x, y))
+        self.rect = self.image.get_rect(center=(x, y)) # Création d'un rectangle autour de la météorite
         
-        self.hitbox = pygame.Rect(0,0,0,0)
-        self.speed = 3
+        self.hitbox = pygame.Rect(0,0,0,0) # Création d'une hitbox vide pour éviter des bugs
+        self.speed = 3 # Vitesse de départ de la météorite
 
     def draw_hitbox(self, window):
         """Dessine la hitbox de la météorite"""

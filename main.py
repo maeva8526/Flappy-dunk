@@ -1,5 +1,5 @@
 import pygame
-from game import Game
+from Game import Game
 
 if __name__ == '__main__':
     # Point d'entrée du programme, ce code s'exécute si on lance main.py
