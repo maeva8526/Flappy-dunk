@@ -241,21 +241,21 @@ class Game:  # Déclaration de la classe Game, qui va gérer l'ensemble du jeu
         score_value_y = 20  # Nouvelle position verticale pour le score
         self.window.blit(score_text, (number_x, score_value_y))
   
-        def update_transition(self):
-            """Fait bouger la soucoupe à la position de départ"""
-            speed = 5 # Vitesse de déplacement 
-            dx = self.start_x - self.player.rect.x # Distance horizontale entre la position actuel et celle pour jouer
-            dy = self.start_y - self.player.rect.y # Distance verticale entre la position actuel et celle pour jouer
+    def update_transition(self):
+        """Fait bouger la soucoupe à la position de départ"""
+        speed = 5 # Vitesse de déplacement 
+        dx = self.start_x - self.player.rect.x # Distance horizontale entre la position actuel et celle pour jouer
+        dy = self.start_y - self.player.rect.y # Distance verticale entre la position actuel et celle pour jouer
 
-            if abs(dx) > 2: # Si la valeur absolue de dx > 2
-                self.player.rect.x += dx / speed # Alors on déplace la soucoupe progressivement
-            if abs(dy) > 2: # Si la valeur absolue de dy > 2
-                self.player.rect.y += dy / speed
+        if abs(dx) > 2: # Si la valeur absolue de dx > 2
+            self.player.rect.x += dx / speed # Alors on déplace la soucoupe progressivement
+        if abs(dy) > 2: # Si la valeur absolue de dy > 2
+            self.player.rect.y += dy / speed
 
-            if abs(dx) <= 2 and abs(dy) <= 2: # Quand on est assez proche de la position cible 
-                self.player.rect.x = self.start_x # Alors on met la soucoupe à sa position de jeu
-                self.player.rect.y = self.start_y
-                self.state = "play" # On change l'état du jeu 
+        if abs(dx) <= 2 and abs(dy) <= 2: # Quand on est assez proche de la position cible 
+            self.player.rect.x = self.start_x # Alors on met la soucoupe à sa position de jeu
+            self.player.rect.y = self.start_y
+            self.state = "play" # On change l'état du jeu 
 
     def update_game(self):
         self.update_background()  
